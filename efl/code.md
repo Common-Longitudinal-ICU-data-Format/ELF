@@ -2,56 +2,56 @@
 
 **Domain-specific vocabulary standards for the `code` column in MEDS data**
 
----
+------------------------------------------------------------------------
 
 ## 1. ELF's Approach: Preset Standards
 
-ELF solves this by defining **preset standard concepts** — a common vocabulary that works regardless of data source.
+Different hospitals use different codes for the same clinical event. ELF solves this by defining **preset standard coding convension**
 
-The approach follows the model established by LOINC (labs), RxNorm (medications), and SNOMED CT (clinical terms). Source-specific codes map to ELF concepts, and the original ontology identifiers are preserved via `parent_codes` in `codes.parquet` for traceability back to the source standard.
+The approach follows the model established by LOINC (Logical Observation Identifiers Names and Codes, for labs), RxNorm (medications), and SNOMED CT (clinical terms). Source-specific codes map to ELF concepts. ELF preserves the original coding system identifiers in the `parent_codes` column of `codes.parquet` for traceability back to the source standard.
 
-The goal is a **minimum standard for high-quality science**. ELF defines the minimum set of concepts needed for reproducible clinical ML — focusing on what matters most is the first step toward broader coverage.
+The goal is a **minimum standard for high-quality science**. ELF defines the minimum set of concepts needed for reproducible. Focusing on what matters most is the first step toward broader coverage.
 
 ELF tells you two things about each concept:
 
-1. **IF** something exists — a standard name for each clinical event type
-2. **HOW** it should be stored — the expected unit, measurement level, and data type
+1.  **IF** something exists — a standard name for each clinical event type
+2.  **HOW** it should be stored — the expected unit, measurement level, and data type
 
-Not every site will have 100% ontology mapping coverage — and that is fine. Standardize what IS present; do not require completeness.
+Not every site will have 100% mapping coverage. That is fine. Standardize what IS present. Do not require completeness.
 
 ## 2. MEDS and the Code Column
 
 MEDS represents clinical events as flat rows with five columns:
 
-```
+```         
 (subject_id, time, code, numeric_value, text_value)
 ```
 
-The `code` column is a free-form string — MEDS imposes no constraints on its contents. ELF constrains `code` using the **mCIDE** (MEDS-compatible Concept ID Encoding) format, giving every event a structured, queryable identifier.
+The `code` column is a free-form string — MEDS imposes no constraints on its contents. ELF constrains `code` using the **mCIDE** (minimum Common ICU Data Elements) format, giving every event a structured, queryable identifier.
 
 ## 3. mCIDE General Format
 
 The standard mCIDE format has four components:
 
-```
+```         
 {domain}//{concept}//{action}//{unit}
 ```
 
 | Component | Description | Examples |
-|-----------|-------------|----------|
-| `domain` | Clinical domain prefix | `VITAL`, `LAB`, `MED`, `RESP`, `ADT` |
+|------------------------|----------------------------|----------------------|
+| `domain` | Clinical domain prefix | `VITAL`, `LAB`, `MED`, `MED_INT`, `RESP`, `ASSESS`, `CODE_STATUS`, `HOSP`, `DEMO`, `ADT`, `POS`, `CRRT`, `ECMO_MCS`, `PROC`, `BILLING_DX` |
 | `concept` | Standardized concept name | `heart_rate`, `creatinine`, `propofol` |
-| `action` | Context qualifier | `UNK` (default), `set`, `obs`, `mar` |
+| `action` | Context qualifier | `UNK` (default), `set`, `obs`, `mar`, `bolus` |
 | `unit` | Measurement unit or data type | `bpm`, `mg/dL`, `text`, `presence` |
 
 **Delimiter rules:**
 
-- `//` (double slash) separates components
-- `/` (single slash) is reserved for use within units (e.g., `mg/dL`, `mcg/kg/min`)
+-   `//` (double slash) separates components
+-   `/` (single slash) is reserved for use within units (e.g., `mg/dL`, `mcg/kg/min`)
 
 **Examples across domains:**
 
-```
+```         
 VITAL//heart_rate//UNK//bpm
 LAB//creatinine//UNK//mg/dL
 MED//norepinephrine//UNK//mcg/kg/min
@@ -59,12 +59,12 @@ RESP//peep//set//cmH2O
 RESP//tidal_volume//obs//mL
 ASSESS//gcs_total//UNK//score
 DEMO//sex//UNK//text
-THERAPY//crrt//UNK//presence
+CRRT//crrt//UNK//presence
 ```
 
-**Note:** The 4-component format is the general standard, but individual domains may adapt it when the semantics require a different structure. Domain-specific conventions are defined below.
+**Note:** The 4-component format is the general standard. Individual domains adapt it when the semantics require a different structure. Domain-specific conventions are defined below.
 
----
+------------------------------------------------------------------------
 
 ## 4. ADT — Admissions/Discharges/Transfers
 
@@ -72,10 +72,10 @@ THERAPY//crrt//UNK//presence
 
 ADT events record where a patient is at a given time. But raw location strings are institution-specific and opaque:
 
-- `"MICU"` — recognizable, but naming varies by hospital
-- `"XYZ Medical Center W10"` — meaningless outside that institution; only staff know W10 is their surgical ICU
-- `"3 NORTH"` — a floor/wing code that requires institutional context
-- `"Emergency Department"` vs `"ED"` vs `"ER"` — same place, different strings
+-   `"MICU"` — recognizable, but naming varies by hospital
+-   `"XYZ Medical Center W10"` — meaningless outside that institution; only staff know W10 is their surgical ICU
+-   `"3 NORTH"` — a floor/wing code that requires institutional context
+-   `"Emergency Department"` vs `"ED"` vs `"ER"` — same place, different strings
 
 These raw strings cannot be queried across datasets. A researcher asking "how long was this patient in the ICU?" must know every institution's location naming scheme.
 
@@ -83,28 +83,27 @@ These raw strings cannot be queried across datasets. A researcher asking "how lo
 
 ADT uses a **3-component** format:
 
-```
+```         
 ADT//{location_category}//{location_type}
 ```
 
-This differs from the standard 4-component mCIDE format (`domain//concept//action//unit`) because ADT events are **categorical transfers**, not measurements with units. There is no numeric value to measure and no unit to specify. The clinically meaningful information is the category of location — not the raw string.
+This differs from the standard 4-component mCIDE format (`domain//concept//action//unit`) because ADT events are **categorical transfers**, not measurements with units. ADT events have no numeric value and no unit. The location category carries the clinical meaning — not the raw string.
 
 | Component | Description | Values |
-|-----------|-------------|--------|
+|-------------------------|-----------------------------|------------------|
 | `ADT` | Domain prefix | Fixed |
 | `location_category` | Broad location type | `ed`, `ward`, `icu`, `stepdown`, ... ([full list](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_categories.csv)) |
 | `location_type` | ICU subtype or `UNK` | `UNK` (non-ICU), or ICU subtype ([full list](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_type.csv)) |
 
 ### Location Taxonomy
 
-> Location categories: [`clif_adt_location_categories.csv`](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_categories.csv)
-> ICU location types: [`clif_adt_location_type.csv`](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_type.csv)
+> Location categories: [`clif_adt_location_categories.csv`](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_categories.csv) ICU location types: [`clif_adt_location_type.csv`](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE/adt/clif_adt_location_type.csv)
 
-- `location_type` is `UNK` for non-ICU categories
-- `location_type` specifies ICU subtype when `location_category` is `icu`
+-   `location_type` is `UNK` for non-ICU categories
+-   `location_type` specifies ICU subtype when `location_category` is `icu`
 
 | `location_category` | `location_type` | Code | Description |
-|---------------------|-----------------|------|-------------|
+|----|----|----|----|
 | `ed` | `UNK` | `ADT//ed//UNK` | Emergency Department |
 | `icu` | `medical_icu` | `ADT//icu//medical_icu` | Medical ICU |
 | `ward` | `UNK` | `ADT//ward//UNK` | General ward |
@@ -113,21 +112,21 @@ This differs from the standard 4-component mCIDE format (`domain//concept//actio
 
 Each institution maps its raw location strings to the ADT taxonomy. This is where institutional knowledge enters the pipeline — someone who knows that "W10" is a surgical ICU makes that mapping once in the YAML config.
 
-| Raw source string | Mapped ADT code |
-|-------------------|-----------------|
-| `"MICU"` | `ADT//icu//medical_icu` |
-| `"SICU"` | `ADT//icu//surgical_icu` |
-| `"General Ward 3B"` | `ADT//ward//UNK` |
-| `"Emergency Department"` | `ADT//ed//UNK` |
-| `"CICU"` | `ADT//icu//cardiac_icu` |
-| `"Post-Anesthesia Care"` | `ADT//stepdown//UNK` |
+| Raw source string        | Mapped ADT code          |
+|--------------------------|--------------------------|
+| `"MICU"`                 | `ADT//icu//medical_icu`  |
+| `"SICU"`                 | `ADT//icu//surgical_icu` |
+| `"General Ward 3B"`      | `ADT//ward//UNK`         |
+| `"Emergency Department"` | `ADT//ed//UNK`           |
+| `"CICU"`                 | `ADT//icu//cardiac_icu`  |
+| `"Post-Anesthesia Care"` | `ADT//stepdown//UNK`     |
 
 ### Example MEDS Events
 
 After mapping, ADT events appear in `data.parquet` as standard MEDS rows:
 
 | subject_id | time | code | numeric_value | text_value |
-|------------|------|------|---------------|------------|
+|--------------|--------------|--------------|-----------------|--------------|
 | 1001 | 2024-01-15 08:30:00 | `ADT//ed//UNK` | *null* | *null* |
 | 1001 | 2024-01-15 14:22:00 | `ADT//icu//medical_icu` | *null* | *null* |
 | 1001 | 2024-01-18 10:05:00 | `ADT//ward//UNK` | *null* | *null* |
@@ -141,7 +140,7 @@ Both `numeric_value` and `text_value` are null — the code itself carries the f
 
 The hierarchical structure supports queries at different granularity levels:
 
-```python
+``` python
 import polars as pl
 
 df = pl.read_parquet("data/*.parquet")
@@ -162,15 +161,15 @@ patient_adt = df.filter(
 ).sort("time")
 ```
 
----
+------------------------------------------------------------------------
 
 ## 5. Version Control
 
 Each domain configuration uses **semantic versioning** (major.minor.patch):
 
-- **Major**: breaking changes — concept redefined, removed, or meaning changed
-- **Minor**: new concepts or sub-categories added
-- **Patch**: bug fixes, description corrections
+-   **Major**: breaking changes — concept redefined, removed, or meaning changed
+-   **Minor**: new concepts or sub-categories added
+-   **Patch**: bug fixes, description corrections
 
 The `concept_version` column in `codes.parquet` records which version of the domain config produced each concept. This ensures traceability: if ADT taxonomy v2.0 adds a new sub-category, datasets built under v1.0 are still interpretable.
 
@@ -180,13 +179,13 @@ Science evolves, and so do definitions. Versioning makes that evolution traceabl
 
 ELF defines a minimum standard — not a maximum. Users can:
 
-- **Add concepts** beyond the ELF defaults via extension configs
-- **Have fewer concepts** if their data doesn't cover all ELF categories
+-   **Add concepts** beyond the ELF defaults via extension configs
+-   **Have fewer concepts** if their data doesn't cover all ELF categories
 
 This mirrors real-world experience. The [CLIF consortium](https://github.com/clif-consortium) spans 10+ sites — some record angiotensin infusion rates, others do not. The right approach is to standardize what IS present at each site, not to require every site to have every concept.
 
 If a hospital has no neurological ICU, it simply has no `ADT//icu//neuro_icu` events. If a hospital has a burn ICU that doesn't fit the default taxonomy, they add it via an extension config. The framework adapts to reality rather than demanding reality conform to it.
 
----
+------------------------------------------------------------------------
 
-*Future domain conventions (VITAL, LAB, MED, RESP, ASSESS, THERAPY, DEMO, BILLING_DX) will be added to this document as they are finalized.*
+*All domain concept catalogs and code tables are defined in [ELF.md](ELF.md). This document covers code format conventions and the ADT domain in detail.*
