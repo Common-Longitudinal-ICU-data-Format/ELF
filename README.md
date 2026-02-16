@@ -1,6 +1,6 @@
 # ELF: Event Language Format
 
-**A standard vocabulary for clinical events**
+**A hierarchical code format and standard vocabulary for clinical events**
 
 ## Motivation
 
@@ -10,7 +10,7 @@ Models trained on one institution's data cannot run on another without extensive
 
 ### What ELF Adds
 
-ELF adopts the MEDS data schema and adds one vocabulary set: **mCIDE** (minimum Common ICU Data Elements). Each mCIDE concept has one standard name and links to an established medical coding system (ontology) such as LOINC, RxNorm, or SNOMED CT.
+ELF adopts the MEDS data schema and adds two things: (1) a hierarchical code format that structures every clinical event code as `{domain}//{level_1}//{level_2}//{level_3}`, and (2) a standard vocabulary called **mCIDE** (minimum Common ICU Data Elements) that populates those levels with defined clinical concepts. Each mCIDE concept has one standard name for the clinical event it represents.
 
 Any clinical dataset can produce ELF output through per-domain YAML configuration files. Phenotyping logic written against mCIDE concepts works identically across all ELF datasets. Because the vocabulary is public and fixed (version controlled), an outside researcher can write code against a blind or private dataset without ever seeing the source data.
 
@@ -29,33 +29,33 @@ ELF extends MEDS by defining `codes.parquet` — a metadata table that standardi
 This table defines every mCIDE concept.
 
 | Column | Type | Nullable | Origin | Description |
-|--------------|--------------|--------------|--------------|------------------|
-| `code` | `string` (PK) | No | MEDS | mCIDE concept code (e.g., `VITAL//heart_rate//UNK//bpm`) |
+|---------------|---------------|---------------|---------------|---------------|
+| `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate//NA`) |
 | `description` | `string` | No | MEDS | Human-readable description |
-| `parent_codes` | `list[string]` | Yes | MEDS | External ontology links (e.g., `["LOINC/2160-0"]`) |
 | `concept_version` | `string` | No | ELF | Semantic version from domain config (e.g., `1.0.0`) |
 
 ## mCIDE Domains
 
-| Domain | Hierarchical level based codes | Count |
-|--------------------------|--------------------------|----------------------------|
-| Vitals | `VITAL//{concept}` | 9 |
-| Labs | `LAB//{concept}//{unit}` | 38 |
-| Medications (continuous) | `MED//{concept}//{unit}//{mar}` | 28 |
-| Medications (intermittent) | `MED_INT//{concept}//{unit}//{mar}` | 12 |
+| Domain | ELF code format | Count |
+|------------------------|------------------------------------|-------------------------|
+| Vitals | `VITAL//{concept}//{unit}` | 9 |
+| Labs | `LAB//{concept}//{unit}//{lab_order_category}` | 52 |
+| Medications (continuous) | `MED_CON//{med_category}//UNK//{mar_action}` | 75 |
+| Medications (intermittent) | `MED_INT//{med_category}//{unit}//{mar_action}` | 165 |
 | Respiratory | `RESP//{concept}` | 20 |
-| Assessments | `ASSESS//{concept}` | 2 |
+| Patient Assessments | `PA//{concept}` | 2 |
 | Code Status | `CODE_STATUS//{concept}` | 10 |
 | Hospitalization | `HOSP//{concept}` | 7 |
 | Demographics | `DEMO//{concept}` | 3 |
-| ADT | `ADT//{location_category}//{location_type}` | 1 |
+| ADT | `ADT//{action}//{location_category}//{location_type}` | 1 |
 | Position | `POS//` | 2 |
 | CRRT | `CRRT//{concept}` | 1 |
 | ECMO_MCS | `ECMO_MCS//{concept}` | 1 |
-| Procedures | `PROC//` | dynamic (CPT pass-through) |
-| Billing Dx | `BILLING_DX//` | dynamic (ICD pass-through) |
+| Procedures | `PROC//{code_system}//{code}` | dynamic (CPT/HCPCS pass-through) |
+| Patient Dx | `PATIENT_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
+| Hospital Dx | `HOSP_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
 
-Full concept catalog with external ontology codes: [`schema/ELF.md`](schema/ELF.md)
+Full specification: [`efl/ELF.md`](efl/ELF.md) | Domain guides: [`efl/domains/`](efl/domains/)
 
 ## License
 
