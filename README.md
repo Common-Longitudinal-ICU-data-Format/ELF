@@ -4,7 +4,7 @@
 
 ## Motivation
 
-[MEDS](https://github.com/Medical-Event-Data-Standard/meds) introduced a simple, flat event-based format that lowered the barrier to working with longitudinal EHR (electronic health record) data. However, MEDS does not standardize medical code vocabularies. The `code` column accepts any string. Two MEDS datasets from different hospitals will use different codes for the same lab test, the same medication, and the same vital sign.
+[MEDS](https://github.com/Medical-Event-Data-Standard/meds) introduced a simple, and lowered the barrier to working with longitudinal EHR (electronic health record) data. However, MEDS does not standardize medical code vocabularies. The `code` column accepts any string and parent_code is not a required column. Two MEDS datasets from different hospitals will use different codes for the same lab test, the same medication, and the same vital sign.
 
 Models trained on one institution's data cannot run on another without extensive re-engineering. There is no shared language for clinical events.
 
@@ -32,30 +32,31 @@ This table defines every mCIDE concept.
 |---------------|---------------|---------------|---------------|---------------|
 | `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate//NA`) |
 | `description` | `string` | No | MEDS | Human-readable description |
+| `parent_codes` | `list[string]` | Yes | MEDS | Parent codes linking to other codes in `codes.parquet` or external vocabularies (e.g., OMOP CDM) |
 | `concept_version` | `string` | No | ELF | Semantic version from domain config (e.g., `1.0.0`) |
 
 ## mCIDE Domains
 
 | Domain | ELF code format | Count |
-|------------------------|------------------------------------|-------------------------|
+|---------------------|------------------------------|---------------------|
 | Vitals | `VITAL//{concept}//{unit}` | 9 |
 | Labs | `LAB//{concept}//{unit}//{lab_order_category}` | 52 |
 | Medications (continuous) | `MED_CON//{med_category}//UNK//{mar_action}` | 75 |
 | Medications (intermittent) | `MED_INT//{med_category}//{unit}//{mar_action}` | 165 |
-| Respiratory | `RESP//{concept}` | 20 |
-| Patient Assessments | `PA//{concept}` | 2 |
-| Code Status | `CODE_STATUS//{concept}` | 10 |
-| Hospitalization | `HOSP//{concept}` | 7 |
-| Demographics | `DEMO//{concept}` | 3 |
-| ADT | `ADT//{action}//{location_category}//{location_type}` | 1 |
-| Position | `POS//` | 2 |
-| CRRT | `CRRT//{concept}` | 1 |
-| ECMO_MCS | `ECMO_MCS//{concept}` | 1 |
+| Respiratory | `RESP//{concept}//{unit}//{action}` | 20 |
+| Patient Assessments | `PA//{assessment_category}` | 70 |
+| Code Status | `CODE_STATUS//{code_status_category}` | 10 |
+| Hospitalization | `HOSP//{concept}//{action}//{unit}` | 7 |
+| Demographics | `DEMO//{category}//{mCIDE_value}` | 13 |
+| ADT | `ADT//{action}//{location_category}//{location_type}` | variable |
+| Position | `POS//{position_category}` | 2 |
+| CRRT | `CRRT//{concept}//{action}//{unit}` | 1 |
+| ECMO_MCS | `ECMO_MCS//{concept}//{action}//{unit}` | 1 |
 | Procedures | `PROC//{code_system}//{code}` | dynamic (CPT/HCPCS pass-through) |
 | Patient Dx | `PATIENT_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
 | Hospital Dx | `HOSP_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
 
-Full specification: [`efl/ELF.md`](efl/ELF.md) | Domain guides: [`efl/domains/`](efl/domains/)
+Full specification: [`efl/ELF.md`](efl/ELF.md) \| Domain guides: [`efl/domains/`](efl/domains/)
 
 ## License
 
