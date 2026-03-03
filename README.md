@@ -2,8 +2,6 @@
 
 **A hierarchical code format and standard vocabulary for clinical events**
 
-## Motivation
-
 [MEDS](https://github.com/Medical-Event-Data-Standard/meds) introduced a simple, and lowered the barrier to working with longitudinal EHR (electronic health record) data. However, MEDS does not standardize medical code vocabularies. The `code` column accepts any string and parent_code is not a required column. Two MEDS datasets from different hospitals will use different codes for the same lab test, the same medication, and the same vital sign.
 
 Models trained on one institution's data cannot run on another without extensive re-engineering. There is no shared language for clinical events.
