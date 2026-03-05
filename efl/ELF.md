@@ -104,7 +104,7 @@ The domain prefix identifies the clinical domain. Up to three additional levels 
 
 | ELF Level | Role | Examples |
 |------------------------|------------------------|------------------------|
-| `domain` | Clinical domain prefix (fixed) | `VITAL`, `LAB`, `MED_CON`, `MED_INT`, `RESP`, `PA`, `CODE_STATUS`, `HOSP`, `DEMO`, `ADT`, `POS`, `CRRT`, `ECMO_MCS`, `PROC`, `PATIENT_DX`, `HOSP_DX` |
+| `domain` | Clinical domain prefix (fixed) | `VITAL`, `LAB`, `MED_CON`, `MED_INT`, `RESP`, `PA`, `CODE_STATUS`, `HOSP`, `PATIENT`, `ADT`, `POS`, `CRRT`, `ECMO_MCS`, `PROC`, `PATIENT_DX`, `HOSP_DX` |
 | `level_1` | Standardized concept name (fixed across all domains) | `heart_rate`, `creatinine`, `propofol`, `TRANSFER_IN` (ADT) |
 | `level_2` | Domain-specific | `unit` (VITAL, LAB, MED_CON, MED_INT, RESP), `location_category` (ADT) |
 | `level_3` | Domain-specific | `lab_order_category` (LAB), `mar_action` (MED_CON, MED_INT: given/bolus/not_given/other), `action` (RESP: set/obs), `location_type` (ADT) |
@@ -129,7 +129,7 @@ MED_CON//norepinephrine//UNK//start
 RESP//peep//cmH2O//set
 RESP//tidal_volume//mL//obs
 PA//gcs_total
-DEMO//sex//female
+PATIENT//sex//female
 CRRT//crrt//UNK//presence
 ```
 
@@ -147,7 +147,7 @@ Not all domains use all three levels. VITAL uses only two levels beyond the pref
 | Pateint Assessments | `PA//` | Clinical assessment scales |
 | Code Status | `CODE_STATUS//` | Goals-of-care status |
 | Hospitalization | `HOSP//` | Admission type and discharge disposition |
-| Demographics | `DEMO//` | Patient demographics |
+| Demographics | `PATIENT//` | Patient demographics |
 | ADT | `ADT//` | Admissions/discharges/transfers |
 | Position | `POS//` | Patient positioning |
 | CRRT | `CRRT//` | Continuous renal replacement therapy |
@@ -174,7 +174,7 @@ Each domain's full concept catalog, code format details, and examples are in its
 | Patient Assessments | `PA//` | 70 | [PA.md](domains/PA.md) |
 | Code Status | `CODE_STATUS//` | 10 | [CODE_STATUS.md](domains/CODE_STATUS.md) |
 | Hospitalization | `HOSP//` | 7 | [HOSP.md](domains/HOSP.md) |
-| Demographics | `DEMO//` | 13 | [DEMO.md](domains/DEMO.md) |
+| Demographics | `PATIENT//` | 13 | [PATIENT.md](domains/PATIENT.md) |
 | ADT | `ADT//` | variable | [ADT.md](domains/ADT.md) |
 | Position | `POS//` | 2 | [POS.md](domains/POS.md) |
 | CRRT | `CRRT//` | 1 | [CRRT.md](domains/CRRT.md) |
@@ -207,7 +207,7 @@ config/
 │   ├── PA.yaml             # Patient assessment concepts
 │   ├── CODE_STATUS.yaml    # Code status concepts
 │   ├── HOSP.yaml           # Hospitalization concepts
-│   ├── DEMO.yaml           # Demographic concepts
+│   ├── PATIENT.yaml           # Demographic concepts
 │   ├── ADT.yaml            # ADT concepts
 │   ├── POS.yaml            # Patient positioning concepts
 │   ├── CRRT.yaml           # CRRT concepts

@@ -45,7 +45,7 @@ This table defines every mCIDE concept.
 | Patient Assessments | `PA//{assessment_category}` | 70 |
 | Code Status | `CODE_STATUS//{code_status_category}` | 10 |
 | Hospitalization | `HOSP//{concept}//{action}//{unit}` | 7 |
-| Demographics | `DEMO//{category}//{mCIDE_value}` | 13 |
+| Demographics | `PATIENT//{category}//{mCIDE_value}` | 13 |
 | ADT | `ADT//{action}//{location_category}//{location_type}` | variable |
 | Position | `POS//{position_category}` | 2 |
 | CRRT | `CRRT//{concept}//{action}//{unit}` | 1 |
