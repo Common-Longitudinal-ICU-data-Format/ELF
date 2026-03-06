@@ -6,7 +6,7 @@
 
 ## Overview
 
-ELF (Event Language Format) defines a hierarchical code structure for clinical events and bundles a standard vocabulary called **mCIDE** (minimum Common ICU Data Elements) to populate that structure. ELF builds on the [MEDS](https://github.com/Medical-Event-Data-Standard/meds) format. The ELF code format encodes every event as `{domain}//{level_1}//{level_2}//{level_3}`, where the domain prefix identifies the clinical domain and up to three additional levels carry domain-specific meaning defined by mCIDE. Each mCIDE concept provides a single standard name for the clinical event it represents. Phenotyping logic written against mCIDE concepts works identically across all ELF datasets.
+ELF (Event Language Format) defines a hierarchical code structure for clinical events and bundles a standard vocabulary called **mCIDE** (minimum Common ICU Data Elements) to populate that structure. ELF builds on the [MEDS](https://github.com/Medical-Event-Data-Standard/meds). The ELF code format encodes every event as `{domain}//{level_1}//{level_2}//{level_3}`, where the domain prefix identifies the clinical domain and up to three additional levels carry domain-specific meaning defined by mCIDE. Each mCIDE concept provides a single standard name for the clinical event it represents. Phenotyping logic written against mCIDE concepts works identically across all ELF datasets.
 
 Different hospitals use different codes for the same clinical event. ELF solves this by defining **preset standard coding conventions**. Source-specific codes map to ELF concepts. ELF defines a single standard name for each clinical event, so any dataset that follows the format produces identical concept codes regardless of the originating institution.
 
@@ -54,7 +54,7 @@ This table defines every mCIDE concept. The Event Language Compiler (ELC) builds
 
 | Column | Type | Nullable | Origin | Description |
 |---------------|---------------|---------------|---------------|---------------|
-| `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate//NA`) |
+| `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate`) |
 | `description` | `string` | No | MEDS | Human-readable description |
 | `parent_codes` | `list[string]` | Yes | MEDS | Parent codes linking to other codes in `codes.parquet` or external vocabularies (e.g., OMOP CDM) |
 | `concept_version` | `string` | No | ELF | Semantic version from domain config (e.g., `1.0.0`) |
@@ -104,10 +104,10 @@ The domain prefix identifies the clinical domain. Up to three additional levels 
 
 | ELF Level | Role | Examples |
 |------------------------|------------------------|------------------------|
-| `domain` | Clinical domain prefix (fixed) | `VITAL`, `LAB`, `MED_CON`, `MED_INT`, `RESP`, `PA`, `CODE_STATUS`, `HOSP`, `PATIENT`, `ADT`, `POS`, `CRRT`, `ECMO_MCS`, `PROC`, `PATIENT_DX`, `HOSP_DX` |
+| `domain` | Clinical domain prefix (fixed) | `VITAL`, `LAB`, `MED_CON`, `MED_INT`, `RESP`, `PA`, `CODE_STATUS`, `HOSP`, `PATIENT`, `ADT`, `POS`, `CRRT`, `ECMO_MCS`, `PROC`, `HOSP_DX` |
 | `level_1` | Standardized concept name (fixed across all domains) | `heart_rate`, `creatinine`, `propofol`, `TRANSFER_IN` (ADT) |
-| `level_2` | Domain-specific | `unit` (VITAL, LAB, MED_CON, MED_INT, RESP), `location_category` (ADT) |
-| `level_3` | Domain-specific | `lab_order_category` (LAB), `mar_action` (MED_CON, MED_INT: given/bolus/not_given/other), `action` (RESP: set/obs), `location_type` (ADT) |
+| `level_2` | Domain-specific | `unit` (LAB, MED_CON, MED_INT), `location_category` (ADT), `value` (VITAL uses level_1 only) |
+| `level_3` | Domain-specific | `lab_order_category` (LAB), `mar_action` (MED_CON, MED_INT), `location_type` (ADT) |
 
 **Delimiter rules:**
 
@@ -122,18 +122,18 @@ The domain prefix identifies the clinical domain. Up to three additional levels 
 **Examples across domains:**
 
 ```         
-VITAL//heart_rate//NA
-VITAL//temperature//C
+VITAL//heart_rate
+VITAL//temp_c
 LAB//creatinine//mg/dL//bmp
-MED_CON//norepinephrine//UNK//start
-RESP//peep//cmH2O//set
-RESP//tidal_volume//mL//obs
+MED_CON//norepinephrine//mcg/kg/min//start
+RESP//peep_set
+RESP//tidal_volume_obs
 PA//gcs_total
 PATIENT//sex//female
-CRRT//crrt//UNK//presence
+CRRT//crrt_mode_category//cvvhdf
 ```
 
-Not all domains use all three levels. VITAL uses only two levels beyond the prefix, and CODE_STATUS, PA, and POS use only one. See the [mCIDE Domain Index](#mcide-domain-index) for per-domain details.
+Not all domains use all three levels. VITAL and RESP numeric parameters use only one level beyond the prefix, and CODE_STATUS, PA, and POS use only one. See the [mCIDE Domain Index](#mcide-domain-index) for per-domain details.
 
 **mCIDE domain prefixes:**
 
@@ -153,10 +153,9 @@ Not all domains use all three levels. VITAL uses only two levels beyond the pref
 | CRRT | `CRRT//` | Continuous renal replacement therapy |
 | ECMO_MCS | `ECMO_MCS//` | ECMO / mechanical circulatory support |
 | Procedures | `PROC//` | Procedure codes (CPT/HCPCS pass-through) |
-| Patient Dx | `PATIENT_DX//` | Patient-level ICD diagnosis codes (pass-through) |
 | Hospital Dx | `HOSP_DX//` | Hospital discharge ICD diagnosis codes (pass-through) |
 
-> Concept counts are defined by the [CLIF mCIDE vocabulary](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE) CSVs (the source of truth). PROC, PATIENT_DX, and HOSP_DX are pass-through domains — concept count depends on the source dataset.
+> Concept counts are defined by the [CLIF mCIDE vocabulary](https://github.com/Common-Longitudinal-ICU-data-Format/CLIF/tree/main/mCIDE) CSVs (the source of truth). PROC and HOSP_DX are pass-through domains — concept count depends on the source dataset.
 
 ------------------------------------------------------------------------
 
@@ -165,7 +164,7 @@ Not all domains use all three levels. VITAL uses only two levels beyond the pref
 Each domain's full concept catalog, code format details, and examples are in its own guide file.
 
 | Domain | Prefix | Concepts | Guide |
-|------------------|------------------|--------------------|------------------|
+|------------------|------------------|-------------------|------------------|
 | Vitals | `VITAL//` | 9 | [VITAL.md](domains/VITAL.md) |
 | Labs | `LAB//` | 52 | [LAB.md](domains/LAB.md) |
 | Medications (continuous) | `MED_CON//` | 75 | [MED_CON.md](domains/MED_CON.md) |
@@ -180,7 +179,6 @@ Each domain's full concept catalog, code format details, and examples are in its
 | CRRT | `CRRT//` | 1 | [CRRT.md](domains/CRRT.md) |
 | ECMO / MCS | `ECMO_MCS//` | 1 | [ECMO_MCS.md](domains/ECMO_MCS.md) |
 | Procedures | `PROC//` | dynamic | [PROC.md](domains/PROC.md) |
-| Patient Dx | `PATIENT_DX//` | dynamic | [PATIENT_DX.md](domains/PATIENT_DX.md) |
 | Hospital Dx | `HOSP_DX//` | dynamic | [HOSP_DX.md](domains/HOSP_DX.md) |
 
 ### MEDS Standard Codes
@@ -194,29 +192,28 @@ ELF includes two event codes defined by the MEDS schema. These are not mCIDE con
 
 ## Config Architecture
 
+> **Working reference configs** are shipped in [`releases/1.0.0-beta/`](../releases/1.0.0-beta/). For a practical guide to writing and adapting configs, see [`IMPLEMENTATION.md`](../IMPLEMENTATION.md). The section below describes the planned multi-source config format for future tooling.
+
 ### Directory Layout
 
-```         
-config/
-├── concepts/               # Default domain configs (shipped with ELF)
-│   ├── VITAL.yaml          # Vital sign concepts
-│   ├── LAB.yaml            # Lab concepts
-│   ├── MED_CON.yaml        # Continuous medication concepts
-│   ├── MED_INT.yaml        # Intermittent medication concepts
-│   ├── RESP.yaml           # Respiratory concepts
-│   ├── PA.yaml             # Patient assessment concepts
-│   ├── CODE_STATUS.yaml    # Code status concepts
-│   ├── HOSP.yaml           # Hospitalization concepts
-│   ├── PATIENT.yaml           # Demographic concepts
-│   ├── ADT.yaml            # ADT concepts
-│   ├── POS.yaml            # Patient positioning concepts
-│   ├── CRRT.yaml           # CRRT concepts
-│   ├── ECMO_MCS.yaml       # ECMO/MCS concepts
-│   ├── PROC.yaml           # Procedure codes (CPT/HCPCS pass-through)
-│   ├── PATIENT_DX.yaml     # Patient-level ICD diagnosis codes (pass-through)
-│   └── HOSP_DX.yaml        # Hospital discharge ICD diagnosis codes (pass-through)
-└── extensions/              # User extensions (one or more YAML files)
-    └── *.yaml
+```
+releases/
+└── 1.0.0-beta/             # Release configs (versioned)
+    ├── VITAL.yaml           # Vital sign concepts
+    ├── LAB.yaml             # Lab concepts
+    ├── MED_CON.yaml         # Continuous medication concepts
+    ├── MED_INT.yaml         # Intermittent medication concepts
+    ├── RESP.yaml            # Respiratory concepts
+    ├── PA.yaml              # Patient assessment concepts
+    ├── CODE_STATUS.yaml     # Code status concepts
+    ├── HOSP.yaml            # Hospitalization concepts
+    ├── PATIENT.yaml         # Demographic concepts
+    ├── ADT.yaml             # ADT concepts
+    ├── POS.yaml             # Patient positioning concepts
+    ├── CRRT.yaml            # CRRT concepts
+    ├── ECMO_MCS.yaml        # ECMO/MCS concepts
+    ├── PROC.yaml            # Procedure codes (CPT/HCPCS pass-through)
+    └── HOSP_DX.yaml         # Hospital discharge ICD diagnosis codes (pass-through)
 ```
 
 ### Domain YAML Structure
@@ -266,33 +263,11 @@ concepts:
   # ... remaining lab concepts
 ```
 
-### Pass-Through Domains: PATIENT_DX and HOSP_DX
+### Pass-Through Domain: HOSP_DX
 
-Diagnosis codes are split into two domains to prevent label leakage in predictive models (see [Ramadan et al., 2025](https://doi.org/10.1001/jamanetworkopen.2025.50454)). PATIENT_DX carries patient-level diagnoses (problem list, medical history, encounter diagnoses) available during a stay. HOSP_DX carries finalized hospital discharge diagnoses, timestamped at discharge time — these are post-hoc labels, not features.
+HOSP_DX carries finalized hospital discharge diagnoses, timestamped at discharge time — these are post-hoc labels, not features available during a stay (see [Ramadan et al., 2025](https://doi.org/10.1001/jamanetworkopen.2025.50454)).
 
-Both use the same output format: `{domain}//ICD//{version}//{code}` — level 1 is the code system (`ICD`), level 2 is the ICD version number (`9`, `10`), and level 3 is the alphanumeric diagnosis code (normalized: uppercase, no decimals).
-
-``` yaml
-# config/concepts/PATIENT_DX.yaml
-domain: PATIENT_DX
-version: 1.0.0
-description: Patient-level ICD diagnosis codes (pass-through)
-mode: pass_through    # Codes come from source data, not predefined
-code_prefix: PATIENT_DX
-
-sources:
-  clif:
-    table: patient_diagnosis
-    code_column: icd_code
-    version_column: icd_version       # Maps to level 2 (version number)
-    category_column: dx_category      # problem_list | medical_history | encounter_dx
-    timestamp_column: recorded_dttm
-  mimic_iv:
-    table: diagnoses_icd
-    code_column: icd_code
-    version_column: icd_version       # Maps to level 2 (version number)
-    timestamp_column: charttime
-```
+The output format is `HOSP_DX//{diagnosis_code_format}//{diagnosis_code}` — level 1 is the raw code format from source data (e.g., `ICD10CM`, `ICD9CM`), and level 2 is the alphanumeric diagnosis code.
 
 ``` yaml
 # config/concepts/HOSP_DX.yaml
@@ -305,13 +280,13 @@ code_prefix: HOSP_DX
 sources:
   clif:
     table: hospital_diagnosis
-    code_column: icd_code
-    version_column: icd_version       # Maps to level 2 (version number)
+    code_column: diagnosis_code
+    format_column: diagnosis_code_format  # Maps to level 1 (e.g., ICD10CM)
     timestamp_column: discharge_dttm
   mimic_iv:
     table: diagnoses_icd
-    code_column: icd_code
-    version_column: icd_version       # Maps to level 2 (version number)
+    code_column: diagnosis_code
+    format_column: diagnosis_code_format  # Maps to level 1 (e.g., ICD10CM)
     timestamp_column: dischtime
 ```
 

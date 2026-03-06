@@ -51,10 +51,13 @@ This table defines every mCIDE concept.
 | CRRT | `CRRT//{concept}//{action}//{unit}` | 1 |
 | ECMO_MCS | `ECMO_MCS//{concept}//{action}//{unit}` | 1 |
 | Procedures | `PROC//{code_system}//{code}` | dynamic (CPT/HCPCS pass-through) |
-| Patient Dx | `PATIENT_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
 | Hospital Dx | `HOSP_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
 
 Full specification: [`efl/ELF.md`](efl/ELF.md) \| Domain guides: [`efl/domains/`](efl/domains/)
+
+## Implementation Guide
+
+See [`IMPLEMENTATION.md`](IMPLEMENTATION.md) for a practical guide to writing ELF configs and converting any clinical dataset to the ELF format. Reference configs for all 15 mCIDE domains are in [`releases/1.0.0-beta/`](releases/1.0.0-beta/).
 
 ## License
 

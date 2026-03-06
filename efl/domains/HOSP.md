@@ -1,19 +1,18 @@
 # HOSP — Hospitalization
 
-Hospitalization events capture admission type and discharge disposition, providing the encounter-level context for clinical events.
+Hospitalization events capture admission type, discharge disposition, and age at admission, providing the encounter-level context for clinical events.
 
 ## Code Format
 
 ```
-HOSP//{concept}//{action}//{unit}
+HOSP//{concept}//{value}
 ```
 
 | Component | Description | Values |
 |---|---|---|
 | `HOSP` | Domain prefix | Fixed |
-| `concept` | Event type | `admission_type`, `discharge_category` |
-| `action` | Context | `UNK` (default) |
-| `unit` | Value type | `text` |
+| `concept` | Event type | `admission_type`, `discharge_category`, `age_charted` |
+| `value` | Category value | Dynamic category from source data |
 
 ## Concept Catalog
 
@@ -22,8 +21,9 @@ HOSP//{concept}//{action}//{unit}
 
 | code | Description | Type |
 |---|---|---|
-| `HOSP//admission_type//UNK//text` | Hospital admission type | text |
-| `HOSP//discharge_category//UNK//text` | Hospital discharge disposition | text |
+| `HOSP//admission_type//{admission_type_category}` | Hospital admission type (category from source data) | text |
+| `HOSP//discharge_category//{discharge_category}` | Hospital discharge disposition (category from source data) | text |
+| `HOSP//age_charted` | Age at admission (years) | numeric |
 
 ---
 *Part of the [ELF mCIDE Concept Catalog](../ELF.md#mcide-domain-index).*

@@ -4,16 +4,24 @@ Respiratory support parameters capture device categories, ventilator mode catego
 
 ## Code Format
 
-```         
-RESP//{concept}//{unit}//{action}
+Numeric parameters use a **2-component** format with the CLIF column name:
+
+```
+RESP//{clif_column_name}
 ```
 
-| Component | Level | Description | Values |
-|------------------|------------------|------------------|------------------|
-| `RESP` | domain | Domain prefix | Fixed |
-| `concept` | Level 1 | Standardized parameter name | `fio2`, `peep`, `device_category`, etc. |
-| `unit` | Level 2 | Measurement unit or qualifier | `%`, `mL`, `cmH2O`, `presence`, `NA` |
-| `action` | Level 3 | Set vs observed | `set`, `obs`, `NA` |
+Categorical concepts use a **3-component** format:
+
+```
+RESP//{concept}//{value}
+```
+
+| Component | Description | Values |
+|------------------|------------------|------------------|
+| `RESP` | Domain prefix | Fixed |
+| `clif_column_name` | CLIF column name (numeric params) | `fio2_set`, `peep_obs`, etc. |
+| `concept` | Category type (categorical params) | `device_category`, `mode_category` |
+| `value` | Category value from source data | Dynamic |
 
 ------------------------------------------------------------------------
 
@@ -23,9 +31,9 @@ RESP//{concept}//{unit}//{action}
 
 | code | Description | value_field |
 |------------------------|------------------------|------------------------|
-| `RESP//device_category//NA//NA` | Respiratory device category | text_value |
-| `RESP//mode_category//NA//NA` | Ventilator mode category | text_value |
-| `RESP//tracheostomy//presence//NA` | Tracheostomy status (0 = absent, 1 = present) | numeric_value |
+| `RESP//device_category//{value}` | Respiratory device category (value from source) | text_value |
+| `RESP//mode_category//{value}` | Ventilator mode category (value from source) | text_value |
+| `RESP//tracheostomy` | Tracheostomy status (0 = absent, 1 = present) | numeric_value |
 
 ### Set Parameters (10 codes)
 
@@ -33,16 +41,16 @@ Clinician-configured ventilator settings. All stored in `numeric_value`.
 
 | code | Description |
 |------------------------------------|------------------------------------|
-| `RESP//fio2//%//set` | FiO2, set (%) |
-| `RESP//lpm//L/min//set` | Liters per minute, set |
-| `RESP//tidal_volume//mL//set` | Tidal volume, set (mL) |
-| `RESP//resp_rate//NA//set` | Respiratory rate, set (breaths/min) |
-| `RESP//pressure_control//cmH2O//set` | Pressure control, set (cmH2O) |
-| `RESP//pressure_support//cmH2O//set` | Pressure support, set (cmH2O) |
-| `RESP//flow_rate//L/min//set` | Inspiratory flow rate, set (L/min) |
-| `RESP//pip//cmH2O//set` | Peak inspiratory pressure, set (cmH2O) |
-| `RESP//inspiratory_time//s//set` | Inspiratory time, set (seconds) |
-| `RESP//peep//cmH2O//set` | PEEP, set (cmH2O) |
+| `RESP//fio2_set` | FiO2, set (%) |
+| `RESP//lpm_set` | Liters per minute, set |
+| `RESP//tidal_volume_set` | Tidal volume, set (mL) |
+| `RESP//resp_rate_set` | Respiratory rate, set (breaths/min) |
+| `RESP//pressure_control_set` | Pressure control, set (cmH2O) |
+| `RESP//pressure_support_set` | Pressure support, set (cmH2O) |
+| `RESP//flow_rate_set` | Inspiratory flow rate, set (L/min) |
+| `RESP//peak_inspiratory_pressure_set` | Peak inspiratory pressure, set (cmH2O) |
+| `RESP//inspiratory_time_set` | Inspiratory time, set (seconds) |
+| `RESP//peep_set` | PEEP, set (cmH2O) |
 
 ### Observed Parameters (7 codes)
 
@@ -50,13 +58,13 @@ Measured ventilator readings. All stored in `numeric_value`.
 
 | code | Description |
 |------------------------------------|------------------------------------|
-| `RESP//tidal_volume//mL//obs` | Tidal volume, observed (mL) |
-| `RESP//resp_rate//breaths/min//obs` | Respiratory rate, observed (breaths/min) |
-| `RESP//plateau_pressure//cmH2O//obs` | Plateau pressure, observed (cmH2O) |
-| `RESP//pip//cmH2O//obs` | Peak inspiratory pressure, observed (cmH2O) |
-| `RESP//peep//cmH2O//obs` | PEEP, observed (cmH2O) |
-| `RESP//minute_vent//L/min//obs` | Minute ventilation, observed (L/min) |
-| `RESP//mean_airway_pressure//cmH2O//obs` | Mean airway pressure, observed (cmH2O) |
+| `RESP//tidal_volume_obs` | Tidal volume, observed (mL) |
+| `RESP//resp_rate_obs` | Respiratory rate, observed (breaths/min) |
+| `RESP//plateau_pressure_obs` | Plateau pressure, observed (cmH2O) |
+| `RESP//peak_inspiratory_pressure_obs` | Peak inspiratory pressure, observed (cmH2O) |
+| `RESP//peep_obs` | PEEP, observed (cmH2O) |
+| `RESP//minute_vent_obs` | Minute ventilation, observed (L/min) |
+| `RESP//mean_airway_pressure_obs` | Mean airway pressure, observed (cmH2O) |
 
 ------------------------------------------------------------------------
 
