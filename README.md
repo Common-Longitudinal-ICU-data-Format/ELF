@@ -28,7 +28,7 @@ This table defines every mCIDE concept.
 
 | Column | Type | Nullable | Origin | Description |
 |---------------|---------------|---------------|---------------|---------------|
-| `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate//NA`) |
+| `code` | `string` (PK) | No | MEDS | ELF-formatted mCIDE concept code (e.g., `VITAL//heart_rate`) |
 | `description` | `string` | No | MEDS | Human-readable description |
 | `parent_codes` | `list[string]` | Yes | MEDS | Parent codes linking to other codes in `codes.parquet` or external vocabularies (e.g., OMOP CDM) |
 | `concept_version` | `string` | No | ELF | Semantic version from domain config (e.g., `1.0.0`) |
@@ -37,21 +37,21 @@ This table defines every mCIDE concept.
 
 | Domain | ELF code format | Count |
 |---------------------|------------------------------|---------------------|
-| Vitals | `VITAL//{concept}//{unit}` | 9 |
+| Vitals | `VITAL//{vital_category}` | 9 |
 | Labs | `LAB//{concept}//{unit}//{lab_order_category}` | 52 |
-| Medications (continuous) | `MED_CON//{med_category}//UNK//{mar_action}` | 75 |
+| Medications (continuous) | `MED_CON//{med_category}//{dose_unit}//{mar_action}` | 75 |
 | Medications (intermittent) | `MED_INT//{med_category}//{unit}//{mar_action}` | 165 |
-| Respiratory | `RESP//{concept}//{unit}//{action}` | 20 |
+| Respiratory | `RESP//{clif_column_name}` or `RESP//{concept}//{value}` | 20 |
 | Patient Assessments | `PA//{assessment_category}` | 70 |
 | Code Status | `CODE_STATUS//{code_status_category}` | 10 |
-| Hospitalization | `HOSP//{concept}//{action}//{unit}` | 7 |
+| Hospitalization | `HOSP//{concept}//{value}` | 7 |
 | Demographics | `PATIENT//{category}//{mCIDE_value}` | 13 |
 | ADT | `ADT//{action}//{location_category}//{location_type}` | variable |
 | Position | `POS//{position_category}` | 2 |
-| CRRT | `CRRT//{concept}//{action}//{unit}` | 1 |
-| ECMO_MCS | `ECMO_MCS//{concept}//{action}//{unit}` | 1 |
+| CRRT | `CRRT//{concept}` or `CRRT//{concept}//{value}` | 1 |
+| ECMO_MCS | `ECMO_MCS//{concept}` or `ECMO_MCS//{concept}//{value}` | 1 |
 | Procedures | `PROC//{code_system}//{code}` | dynamic (CPT/HCPCS pass-through) |
-| Hospital Dx | `HOSP_DX//ICD//{version}//{code}` | dynamic (ICD pass-through) |
+| Hospital Dx | `HOSP_DX//{diagnosis_code_format}//{code}` | dynamic (ICD pass-through) |
 
 Full specification: [`efl/ELF.md`](efl/ELF.md) \| Domain guides: [`efl/domains/`](efl/domains/)
 
